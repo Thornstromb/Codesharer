@@ -1,0 +1,162 @@
+--[[ Original Code ]]--
+
+--[[ Card Counter ]]--
+function count()
+    x1c = self.call('check', {target = x1card})
+    if x1c[1] then
+        for k,obj in pairs(x1c) do
+            if obj.tag == 'Card' then
+                x1 = 1
+            elseif obj.tag == 'Deck' then
+                x1 = #obj.getObjects()
+            else x1 = 0    
+            end
+        end
+    else x1 = 0
+    end
+    x2c = self.call('check', {target = x2card})
+    if x2c[1] then
+        for k,obj in pairs(x2c) do
+            if obj.tag == 'Card' then
+                x2 = 2
+            elseif obj.tag == 'Deck' then
+                x2 = #obj.getObjects()*2
+            end
+        end
+    else x2 = 0
+    end
+    x3c = self.call('check', {target = x3card})
+    if x3c[1] then
+        for k,obj in pairs(x3c) do
+            if obj.tag == 'Card' then
+                x3 = 3
+            elseif obj.tag == 'Deck' then
+                x3 = #obj.getObjects()*3
+            end
+        end
+    else x3 = 0
+    end
+    counted = x1 + x2 + x3
+    counter.setValue(counted)
+end
+
+--[[ Corp Deck Maker]]--
+function corpdeck()
+    corppoint = corpcard.getPosition()
+    corpspawn = {corppoint.x, corppoint.y+1, corppoint.z}
+    corpid = {corppoint.x, corppoint.y+3, corppoint.z}
+    x3c = self.call('check', {target = x3card})
+    for i, obj in pairs(x3c) do
+        for h=1,3 do
+            obj.clone({ position = corpspawn })
+        end
+    end
+    x2c = self.call('check', {target = x2card})
+    for i, obj in pairs(x2c) do
+        for h=1,2 do
+            obj.clone({ position = corpspawn })
+        end
+    end
+    x1c = self.call('check', {target = x1card})
+    for i, obj in pairs(x1c) do
+        obj.clone({ position = corpspawn })
+    end
+    idc = self.call('check', {target = idcard})
+    for i, obj in pairs(idc) do
+        obj.clone({ position = corpid })
+    end
+--    corptarget = corpbag.getPosition()
+--    corpend = {corptarget.x, corptarget.y+3, corptarget.z}
+--    for i, obj in pairs(x3c) do
+--        corpbag.putObject(x3c[1])
+--    end
+--    for i, obj in pairs(x2c) do
+--        corpbag.putObject(x2c[1])
+--    end
+--    for i, obj in pairs(x1c) do
+--        corpbag.putObject(x1c[1])
+--    end
+--    for i, obj in pairs(idc) do
+--        corpbag.putObject(idc[1])
+--    end
+end
+
+--[[ Revised Code with working second half ]]--
+
+--[[ Master Card Check - Call Simplifier]]--
+function CallCheck(checkorigin)
+    checkreturn = self.call('MasterCardCheck', {target = checkorigin})
+    return checkreturn
+end
+
+--{{ Counting Cards For Fun And Profit - }}
+function ccffap(count, n)
+    if count[1] then
+        for k,obj in pairs(count) do
+            if obj.tag == 'Card' then
+                ret = n
+            elseif obj.tag == 'Deck' then
+                ret = #obj.getObjects()*n
+            else ret = 0    end
+        end
+    else ret = 0    end
+    return ret
+end
+
+--[[ Card Counter ]]--
+function CountCardsOnPlattens()
+    x1c = CallCheck(x1card)
+    x2c = CallCheck(x2card)
+    x3c = CallCheck(x3card)
+    counted = ccffap(x1c, 1) + ccffap(x2c, 2) + ccffap(x3c, 3)
+    counter.setValue(counted)
+end
+
+--[[ Card Duplicator ]]--
+function CloneCards (source, n, target)
+    for  i,obj in pairs(source) do
+        for l=1,n do
+          obj.clone(target)
+        end
+    end
+end
+
+--[[ Card Duplicator, Position Only]]--
+function CloneCardToPos(source, n, pos)
+  CloneCards(source, n, {position = pos})
+end
+
+--[[ Cards to Bag ]]--
+function BagCard(source, pos)
+    for i, obj in pairs(source) do
+        if obj.tag == 'Card' then
+            pos.putObject(obj)
+        elseif obj.tag == 'Deck' then
+            for h=1,#obj.getObjects() do
+                pos.putObject(obj.takeObject({}))
+            end
+        end
+    end
+end
+
+--[[ Corp Deck Maker ]]--
+function corpdeck()
+    corppoint = corpcard.getPosition()
+    corpspawn = {corppoint.x, corppoint.y+1, corppoint.z}
+    corpid = {corppoint.x, corppoint.y+3, corppoint.z}
+    x3c = CallCheck(x3card)
+    x2c = CallCheck(x2card)
+    x1c = CallCheck(x1card)
+    idc = CallCheck(idcard)
+    CloneCardToPos(x3c, 3, corpspawn)
+    CloneCardToPos(x2c, 2, corpspawn)
+    CloneCardToPos(x1c, 1, corpspawn)
+    CloneCardToPos(idc, 1, corpid)
+    BagCard(x3c, corpbag)
+    BagCard(x2c, corpbag)
+    BagCard(x1c, corpbag)
+    BagCard(idc, corpbag)
+end
+
+--[[ Note there is a second copy of the Deck Maker scripts for the "Runner" deck.
+  Its the same code with different endpoints, so i didn't include it in this little show-and-tell ]]--
